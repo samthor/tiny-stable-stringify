@@ -17,28 +17,27 @@ const isRawJSON: (node: unknown) => boolean = JSON.isRawJSON
 // to the original that can be passed in properly
 const updateMap = new WeakMap<any, any>();
 
-function sortedReplacer(this: Record<string, any>, key: string, value: any) {
-  if (typeof value !== 'object' || value === null || Array.isArray(value) || isRawJSON(value)) {
+function sortedReplacer(key: string, value: any) {
+  // nb. use of `==`
+  if (value == null || typeof value !== 'object' || Array.isArray(value) || isRawJSON(value)) {
     return value;
   }
-
-  const allKeys = Object.keys(value);
-  allKeys.sort();
 
   // Integer keys will always be grouped first (and sorted within the group) regardless of
   // insertion order. This doesn't match ".sort()", but it is consistent!
   const update: Record<string, any> = {};
-  for (const key of allKeys) {
+  for (const key of Object.keys(value).sort()) {
     update[key] = value[key];
   }
   return update;
 }
 
 export const stringify: typeof types.stringify = (object, replacer, space) => {
+  let r: types.Replacer = sortedReplacer;
   if (replacer) {
-    const r: types.Replacer = function (this: Record<string, any>, key: string, value: any) {
+    r = function (key, value) {
       const userUpdate = replacer.call(updateMap.get(this), key, value);
-      const libraryUpdate = sortedReplacer.call(this, key, userUpdate);
+      const libraryUpdate = sortedReplacer(key, userUpdate);
 
       // differs only if value is a dictionary
       if (libraryUpdate !== userUpdate) {
@@ -47,10 +46,9 @@ export const stringify: typeof types.stringify = (object, replacer, space) => {
 
       return libraryUpdate;
     };
-    return JSON.stringify(object, r, space);
   }
 
-  return JSON.stringify(object, sortedReplacer, space);
+  return JSON.stringify(object, r, space);
 };
 
 export { stringify as default };
