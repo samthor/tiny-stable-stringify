@@ -41,11 +41,13 @@ function prepareSpace(arg: number | string | undefined) {
   return out;
 }
 
+const defaultSortedKeysOfNode = (node: Record<string, any>) => Object.keys(node).sort();
+
 function buildSortedKeysOfNode(
   compare?: types.Options['cmp'],
 ): (node: Record<string, any>) => string[] {
   if (compare === undefined) {
-    return (node) => Object.keys(node).sort();
+    return defaultSortedKeysOfNode;
   }
 
   return (node: Record<string, any>) => {
@@ -70,7 +72,7 @@ export const stringify: typeof types.stringify = (object, options) => {
 
   const keyValueSep = space ? ': ' : ':';
   const basePrefix = space ? '\n' : '';
-  const seen = new Set<any>();
+  const seen: any[] = [];
 
   const internalStringify = (
     prefix: string,
@@ -79,7 +81,7 @@ export const stringify: typeof types.stringify = (object, options) => {
     node: any,
   ): string | undefined => {
     // coerce to JSON if helper method defined
-    if (typeof node?.toJSON === 'function') {
+    if (typeof node === 'object' && node?.toJSON && typeof node.toJSON === 'function') {
       node = node.toJSON(key);
     }
 
@@ -92,20 +94,18 @@ export const stringify: typeof types.stringify = (object, options) => {
 
     node = replacer.call(parent, key, node);
 
-    if (node === undefined) {
-      return undefined; // no JSON
-    } else if (node === null) {
+    if (node === null) {
       return 'null';
     } else if (typeof node !== 'object') {
       return JSON.stringify(node);
     }
 
-    if (seen.has(node)) {
+    if (seen.indexOf(node) !== -1) {
       // stringify the whole thing, which should fail! ... safely throw anyway
       JSON.stringify(object);
       throw new TypeError(`Converting circular structure to JSON`);
     }
-    seen.add(node);
+    seen.push(node);
 
     const nestedPrefix = prefix + space;
 
@@ -115,6 +115,7 @@ export const stringify: typeof types.stringify = (object, options) => {
           nestedPrefix + (internalStringify(nestedPrefix, node, String(index), value) ?? 'null')
         );
       });
+      seen.pop();
       return `[${vstrs.join()}${prefix}]`;
     }
 
@@ -129,6 +130,7 @@ export const stringify: typeof types.stringify = (object, options) => {
       }
     });
 
+    seen.pop();
     return `{${vstrs.join()}${prefix}}`;
   };
 
