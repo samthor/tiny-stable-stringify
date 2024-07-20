@@ -13,7 +13,6 @@
     "build:cjs": "esbuild src/commonjs.js --bundle --format=cjs --outfile=dist/index.cjs --sourcemap --target=node12",
     "prepublishOnly": "node --run build:cjs && node --run build:js"
   },
-  "private": true,
   "author": "Sam Thorogood <sam.thorogood@gmail.com>",
   "license": "Apache-2.0",
   "exports": {
