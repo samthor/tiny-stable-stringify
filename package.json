@@ -5,11 +5,11 @@
     "tsx": "^4.16.2"
   },
   "name": "tiny-stable-stringify",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "type": "module",
   "scripts": {
     "test": "tsx test/test.ts",
-    "build:js": "esbuild src/stable.ts --format=esm --outfile=dist/index.js --sourcemap --target=node18",
+    "build:js": "esbuild src/index.ts --minify --format=esm --outfile=dist/index.js --sourcemap --target=node18",
     "build:cjs": "esbuild src/commonjs.js --bundle --format=cjs --outfile=dist/index.cjs --sourcemap --target=node12",
     "prepublishOnly": "node --run build:cjs && node --run build:js"
   },

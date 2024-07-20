@@ -1,6 +1,6 @@
 import test from 'node:test';
 import * as assert from 'node:assert';
-import * as actual from '../src/stable.ts';
+import * as actual from '../src/index.ts';
 import type * as types from '../types.d.ts';
 
 const { stringify } = actual;
@@ -46,7 +46,7 @@ test('no config', () => {
 
 test('space', () => {
   assert.strictEqual(
-    stringify(complexObject, { space: 2 }),
+    stringify(complexObject, null, 2),
     `{
   "a": 3,
   "c": [
@@ -77,7 +77,7 @@ test('helpers', () => {
   };
 
   assert.strictEqual(
-    stringify(o, { space: 1 }),
+    stringify(o, null, 1),
     `{
  "a": 1,
  "b": {
@@ -87,8 +87,6 @@ test('helpers', () => {
   );
 });
 
-JSON.stringify;
-
 test('throws', () => {
   const a: any[] = [];
   a.push(a);
@@ -97,8 +95,12 @@ test('throws', () => {
 });
 
 test('replacer', () => {
-  const o = { a: 1, b: 2, c: false };
-  const replacer: types.Replacer = (key, value) => {
+  const q = { match: 'me' };
+  const o = { a: 1, q, b: 2, c: false };
+  const replacer: types.Replacer = function (key, value) {
+    if (this === q) {
+      return { LOL: 'what' };
+    }
     if (value === 1) {
       return 'one';
     }
@@ -108,5 +110,8 @@ test('replacer', () => {
     return value;
   };
 
-  assert.strictEqual(stringify(o, { replacer }), '{"a":"one","b":"two","c":false}');
+  assert.strictEqual(
+    stringify(o, replacer),
+    '{"a":"one","b":"two","c":false,"q":{"match":{"LOL":"what"}}}',
+  );
 });
