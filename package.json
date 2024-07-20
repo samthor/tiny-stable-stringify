@@ -5,7 +5,15 @@
     "tsx": "^4.16.2"
   },
   "name": "tiny-stable-stringify",
-  "version": "0.1.1",
+  "keywords": [
+    "json",
+    "stringify",
+    "deterministic",
+    "hash",
+    "sort",
+    "stable"
+  ],
+  "version": "0.1.2",
   "type": "module",
   "scripts": {
     "test": "tsx test/test.ts",
